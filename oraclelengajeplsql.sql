@@ -299,6 +299,143 @@ begin
 end;
 
 
+--en el caso de que el mes sea enero, el mes sera el trece y le restaremos uno al año. Lo mismo para febrero. 
+
+declare
+    v_dia integer; v_mes integer; v_ano integer; 
+begin
+    v_dia := '&dia'; v_mes := '&mes'; v_ano := '&ano';
+    
+    --paso1. 
+    v_mes := (((v_mes+1)*3)/5);
+    dbms_output.put_line (v_mes);
+    
+    --paso2. 
+    v_ano := trunc(v_ano/4);
+    dbms_output.put_line (v_ano);
+    --paso3
+    --paso4 
+    --paso5
+end;
+
+
+---  21/4/2025   comenzamos con bucles. 
+--se va a mostrar la suma de los primeros 100 números. 
+----  este ejemplo escon un break. 
+declare 
+    i integer;
+    miSuma integer;
+begin 
+    i := 1;
+    miSuma := 0;
+    loop 
+        miSuma := miSuma + i;
+        i := i + 1;
+        EXIT WHEN i > 100;
+    end loop;
+    dbms_output.put_line (miSuma);
+end;
+
+-- este ejemplo es con un while. 
+declare 
+    miSuma integer;
+    i integer;
+begin 
+    i := 1;
+    miSuma := 0;
+    while i <= 100 loop 
+        miSuma := miSuma + i;
+        i := i + 1;
+    end loop;
+    dbms_output.put_line (miSuma);
+end;
+
+---blucle contador. 
+declare 
+    miSuma integer;
+begin 
+    miSuma := 0;
+    for i in 1..100 loop
+        miSuma := miSuma + i;        
+    end loop;
+    dbms_output.put_line (miSuma);
+end;
+
+-- etiquetas GO TO. 
+--No puede haber otra etiqueta en el entorno actual con el mismo nombre.
+--No se puede saltar al interior de un bucle
+--La etiqueta debe preceder a un bloque o a un conjunto de órdenes ejecutables.
+--No se puede saltar al interior de una orden IF
+declare 
+    miSuma integer;
+begin 
+    miSuma := 0;
+    goto etiqueta;
+    for i in 1..100 loop
+        miSuma := miSuma + i;        
+    end loop;
+    <<etiqueta>>
+    dbms_output.put_line (miSuma);
+end;
+
+
+---  uso del NULL 
+declare 
+    miSuma integer;
+begin 
+    miSuma := &suma;
+    if (miSuma > 10) then 
+        dbms_output.put_line ('es mayor de 10');
+    else
+        null;
+    end if;
+end;
+
+--- mostrar los números desde 1 al 10. 
+declare
+    i integer;
+begin 
+    i := 1;
+    while (i <= 10) loop
+        dbms_output.put_line (i);
+        i := i + 1;
+    end loop;
+end;
+-- ahora con for. 
+declare
+begin 
+    for i in 1..10 loop
+        dbms_output.put_line (i);
+    end loop;
+end;
+
+-- mostrar los números comprendidos entre el rango. 
+--  si el número inicial es mayor, entonces que no lo haga y que lo indique. 
+
+declare
+    minumerocomienzo integer := 0;
+    minumerofin integer := 0;
+begin
+    minumerocomienzo:= &numerocomienzo;
+    minumerofin:= &numerofin;
+    if (minumerocomienzo >= minumerofin) then 
+        dbms_output.put_line (' el del inicial es mayor o igual al mayor. ');
+    else
+        for i in minumerocomienzo..minumerofin loop
+            dbms_output.put_line (i);
+        end loop;
+    end if;
+end;
+
+
+
+
+
+
+
+
+
+
 
 
 
