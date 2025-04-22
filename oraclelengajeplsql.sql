@@ -319,7 +319,7 @@ begin
     v_anoauxiliartres := trunc (v_ano/400);
     dbms_output.put_line (v_anoauxiliartres);
     --paso5.
-    v_uaxiliar_sumas := v_dia + ()
+    v_uaxiliar_sumas := v_dia + (v_mes * 2);
     --paso6.
     --paso7.
     --paso8. 
@@ -684,4 +684,33 @@ begin
         insert into dept values (v_dept_no, v_dnombre, v_loc);
     end if;
     close cursoremp;
+end;
+
+--código que modifique el salario del empleado arroyo. 
+-- si es epplaedo  cobra más de 250.000  le bajamos el sueldo en 10.000 y en el caso contrario lesubimos a 10.000
+select * from emp;
+SELECT salario from emp where apellido = 'arroyo';
+declare
+    miCursorSalario emp.salario%type;
+begin
+    select salario into miCursorSalario from emp where apellido = 'arroyo';
+    dbms_output.put_line (miCursorSalario);
+end;
+
+select * from emp;
+declare
+    cursor cursoremp is select SALARIO from emp where apellido = 'arroyo';
+    v_apellido emp.apellido%type;
+    v_salario_recuperado emp.salario%type;
+begin
+    open cursoremp;
+    fetch cursoremp into v_salario_recuperado;
+    
+    if (v_salario_recuperado > 250000) then 
+        dbms_output.put_line ('es mas de  250000');
+        update emp set salario = salario - 10000 where apellido  = 'arroyo';
+    else
+        dbms_output.put_line (' es menos de 250000');
+        update emp set salario = salario + 10000 where apellido  = 'arroyo';
+    end if;
 end;
