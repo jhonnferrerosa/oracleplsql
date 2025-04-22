@@ -302,20 +302,27 @@ end;
 --en el caso de que el mes sea enero, el mes sera el trece y le restaremos uno al año. Lo mismo para febrero. 
 
 declare
-    v_dia integer; v_mes integer; v_ano integer; 
+    v_dia integer; v_mes integer; v_ano integer; v_anoauxiliaruno integer; v_anoauxiliardos integer;
+    v_anoauxiliartres integer; v_uaxiliar_sumas integer;
 begin
     v_dia := '&dia'; v_mes := '&mes'; v_ano := '&ano';
-    
     --paso1. 
     v_mes := (((v_mes+1)*3)/5);
     dbms_output.put_line (v_mes);
-    
     --paso2. 
-    v_ano := trunc(v_ano/4);
-    dbms_output.put_line (v_ano);
+    v_anoauxiliaruno := trunc(v_ano/4);
+    dbms_output.put_line (v_anoauxiliaruno);
     --paso3
+    v_anoauxiliardos := trunc (v_ano/100);
+    dbms_output.put_line (v_anoauxiliardos);
     --paso4 
-    --paso5
+    v_anoauxiliartres := trunc (v_ano/400);
+    dbms_output.put_line (v_anoauxiliartres);
+    --paso5.
+    v_uaxiliar_sumas := v_dia + ()
+    --paso6.
+    --paso7.
+    --paso8. 
 end;
 
 
@@ -428,17 +435,253 @@ begin
 end;
 
 
+--queremos un bucle pidiendo un inicio y un fin. Mostrar los números pares en este rango. 
+declare
+    minumerocomienzo integer := 0;
+    minumerofin integer := 0;
+begin
+    minumerocomienzo:= &numerocomienzo;
+    minumerofin:= &numerofin;
+    if (minumerocomienzo >= minumerofin) then 
+        dbms_output.put_line (' el del inicial es mayor o igual al mayor. ');
+    else
+        for i in minumerocomienzo..minumerofin loop
+            if (mod (i,2) = 0) then 
+                dbms_output.put_line (i);
+            end if;
+        end loop;
+    end if;
+end;
+
+---ún número siempre llegará a ser 1 siguiendo unas instrucciones. 
+-- si el número es par, se divide entre dos. 
+-- y si es impar, se multiplica por tres y se suma uno. 
+declare
+    minumero integer;
+begin
+    dbms_output.put_line ('comienza');
+    minumero := &numero;
+    while (minumero > 1) loop
+        if (mod (minumero, 2) = 0) then
+            minumero := minumero / 2;
+        else
+            minumero := (minumero * 3) + 1; 
+        end if;
+        dbms_output.put_line (minumero);
+    end loop;
+end;
+
+----mostar la tabla de multiplicar dado un número. 
+
+declare 
+    miNumero integer;
+begin 
+    miNumero := &numero;
+    for i in 1..10 loop
+        dbms_output.put_line (miNumero ||'*' || i || '=' || miNumero*i);
+    end loop;
+end;
+
+-- un progtama que pedirá un texto, de tal forma que hay que recorrer cada letra. 
+
+declare 
+    miTexto varchar2 (50);
+begin 
+    miTexto := '&texto';
+    for i in 1..length(miTexto) loop
+        --- recordar que esto es para sacar el caracter correspondiente. el primero es el índice. 
+        -- y lo segundo es la cantidad de caracteres que se extraen de la cadena. 
+        dbms_output.put_line (substr(miTexto, i, 1));
+    end loop;
+end;
 
 
+-- un programa donde el usuario pondra un texto númerico. 
+-- y se tiene que mostrar la suma de todos los catacteres númericos. 
+declare 
+    miTexto varchar2 (50);
+    miTotal integer := 0;
+begin 
+    miTexto := '&texto';
+    for i in 1..length(miTexto) loop
+        miTotal := miTotal +  to_number (substr(miTexto, i, 1));
+    end loop;
+    dbms_output.put_line (miTotal);
+end;
+
+--22/4 
+--consultas de acción. 
+--  insertar 5 departamentos en un bloque plsql dinámico. 
+declare 
+    v_nombre dept.dnombre%type;
+    v_loc dept.loc%type;
+begin
+    ---  un bucle para insertar 5 departamentos. 
+    for i in 1..5 loop
+        v_nombre := 'departamento' || i;
+        v_loc := 'localidad' || i;
+        insert into dept values (i, v_nombre,v_loc);    
+    end loop;
+    dbms_output.put_line ('fin del programa.');
+end;
+
+select * from dept;
+
+declare 
+    v_nombre dept.dnombre%type;
+    v_loc dept.loc%type;
+begin
+    ---  un bucle para insertar 5 departamentos. 
+    for i in 1..5 loop
+        v_nombre := 'departamento' || i;
+        v_loc := 'localidad' || i;
+        insert into dept values ((select max (dept_no) + 1 from dept), v_nombre,v_loc);    
+    end loop;
+    dbms_output.put_line ('fin del programa.');
+end;
+
+--- realizar un bloque que pedirá un número al usuario y mostrará el departamento con dicho número. 
+declare 
+    v_id integer;
+begin
+    v_id := &id;
+    select * from dept where dept_no = v_id;
+end;
 
 
+---implicito. sólo puede devolver una fila. 
+-- recuperar el oficio del empleado. REY. 
+declare
+    v_oficio emp.oficio%type;
+begin
+    select oficio into v_oficio from emp where  upper(apellido) = 'REY';
+    dbms_output.put_line (v_oficio);
+end;
+--explicito. 
+-- puede devolver más de una fila y es necesario declararlo. 
+--mostrar el apellido y el salario de todos los empleados. 
+select * from emp;
+declare
+    v_apellido emp.apellido%type;
+    v_sal emp.salario%type;
+    -- declaramos el cursor con un consulta. 
+    -- la consulta debe de tener los mismso detos para el select. 
+    cursor cursoremp is select APELLIDO, SALARIO from emp;
+begin
+    --abrir el cursor. 
+    open cursoremp;
+    --bucle infinito. 
+    loop
+        -- extraemos los datos del cursor. 
+        fetch cursoremp into v_apellido, v_sal;
+        -- en not found salta cuando no se ha recuperado una fila de la consulta. 
+        exit when cursoremp%notfound;
+        --dibujamos las variables. 
+        dbms_output.put_line (v_apellido);
+        dbms_output.put_line (v_sal);
+    end loop;
+end;
+ 
+ 
+---SQL%cout, vale para encontrar si se ha podido hacer cambios en esa consulta. 
+--sql%rowcount también es para consultas de acción. 
+--increemntar en 1 el salario  de los emleados ddel departamento 10. 
+-- mostrar el númers de los empeados modificados. 
+select * from emp;
+declare
+begin
+    update emp set salario = salario + 1 where dept_no = 10;
+    dbms_output.put_line ('emplados modificados: ');
+    dbms_output.put_line (sql%rowcount);
+end;
+
+---incrementar en 10.000 al empleado que menos cobre en la empresa. 
+select * from emp;
+select min(salario) from emp; 
+
+declare
+    v_salariominimo emp.salario%type;
+begin
+    select min(salario) into v_salariominimo from emp;
+    dbms_output.put_line (v_salariominimo);
+    update emp set salario = salario + 10000 where salario =  v_salariominimo;
+    dbms_output.put_line ('se ha incrementado el salario a esta cantidad de empleados:  ');
+    dbms_output.put_line (sql%rowcount);
+    dbms_output.put_line ('fin del prog.');
+end;
+
+-- se pide el numero, nombre y loc de un departamento. 
+-- en el caso de que el departamento exista,modificamos nombre y localidad 
+-- en el caso de que no exista lo insertamos. 
+select * from dept;
+declare
+    v_dept_no dept.dept_no%type;
+    v_dnombre dept.dnombre%type;
+    v_loc dept.loc%type;
+    v_dept_noleido emp.dept_no%type;
+begin
+    dbms_output.put_line ('comeinza');
+    v_dept_no := &dept_no;
+    v_dnombre := '&dnombre';
+    v_loc := '&loc';
+    select dept_no into v_dept_noleido from dept where dept_no = v_dept_no;
+    dbms_output.put_line (v_dept_noleido);
+    if (v_dept_noleido is null) then 
+        dbms_output.put_line ('no existe ese deartamento');
+    else
+        dbms_output.put_line ('si que existe ese dept');
+    end if;
+end;
 
 
+select * from dept;
+-- hasta que no se hace el OPEN, no se ejecuta la consulta. 
+declare
+    v_dept_no dept.dept_no%type; v_dnombre dept.dnombre%type; v_loc dept.loc%type;        
+    cursor cursoremp is select dept_no from dept;
+    v_dept_norecuperado dept.dept_no%type;
+    v_bandera boolean := false;
+begin
+    dbms_output.put_line ('comeinza');
+    open cursoremp;
+    v_dept_no := &dept_no;
+    v_dnombre := '&dnombre';
+    v_loc := '&loc';
+    loop 
+        fetch cursoremp into v_dept_norecuperado;
+        if (v_dept_norecuperado = v_dept_no) then
+            v_bandera := true;
+        end if;
+        exit when cursoremp%notfound;
+    end loop;
+    if (v_bandera = true) then
+        dbms_output.put_line (' en este caso se actualizaaaa'); 
+        update dept set dnombre = v_dnombre, loc = v_loc where dept_no = v_dept_no;
+    else
+        dbms_output.put_line (' en este caso se crea una nueva fila. ');
+        insert into dept values (v_dept_no, v_dnombre, v_loc);
+    end if;
+    close cursoremp;
+end;
 
-
-
-
-
-
-
-
+--- otra form de hacerlo. 
+select * from dept;
+declare
+    v_dept_no dept.dept_no%type; v_dnombre dept.dnombre%type; v_loc dept.loc%type;        
+    cursor cursoremp is select dept_no from dept where dept_no = v_dept_no;
+    v_dept_norecuperado dept.dept_no%type;
+begin
+    dbms_output.put_line ('comeinza');
+    v_dept_no := &dept_no;
+    v_dnombre := '&dnombre';
+    v_loc := '&loc';
+    open cursoremp;
+    
+    fetch cursoremp into v_dept_norecuperado;
+    if (v_dept_norecuperado = v_dept_no) then
+        update dept set dnombre = v_dnombre, loc = v_loc where dept_no = v_dept_no;
+    else
+        insert into dept values (v_dept_no, v_dnombre, v_loc);
+    end if;
+    close cursoremp;
+end;
