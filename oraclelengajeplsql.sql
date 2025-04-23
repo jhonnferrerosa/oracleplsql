@@ -303,7 +303,7 @@ end;
 
 declare
     v_dia integer; v_mes integer; v_ano integer; v_anoauxiliaruno integer; v_anoauxiliardos integer;
-    v_anoauxiliartres integer; v_uaxiliar_sumas integer;
+    v_anoauxiliartres integer; v_auxiliar_sumas_cinco integer;
 begin
     v_dia := '&dia'; v_mes := '&mes'; v_ano := '&ano';
     --paso1. 
@@ -319,7 +319,7 @@ begin
     v_anoauxiliartres := trunc (v_ano/400);
     dbms_output.put_line (v_anoauxiliartres);
     --paso5.
-    v_uaxiliar_sumas := v_dia + (v_mes * 2);
+    v_auxiliar_sumas_cinco := v_dia + (v_mes * 2) + v_ano + ;
     --paso6.
     --paso7.
     --paso8. 
@@ -697,9 +697,10 @@ begin
     dbms_output.put_line (miCursorSalario);
 end;
 
+-- en el implicito, en el caso de que no encuentre nada, te saca "not data found" y si salen más de uno entonces te sale "to many rounds".
 select * from emp;
 declare
-    cursor cursoremp is select SALARIO from emp where apellido = 'arroyo';
+    cursor cursoremp is select SALARIO from emp where apellido = ('arroyo');
     v_apellido emp.apellido%type;
     v_salario_recuperado emp.salario%type;
 begin
@@ -714,3 +715,94 @@ begin
         update emp set salario = salario + 10000 where apellido  = 'arroyo';
     end if;
 end;
+
+--23/4/2025
+--incrementar el salario de los doctores de la PAZ. si supera 1.000.000  bajamos a los que sean 10.000 y para los que cobren menos de un millón
+-- entonces subirles 10.000. 
+select * from hospital;
+select * from doctor;
+select * from doctor inner join hospital on doctor.hospital_cod = hospital.hospital_cod;
+select * from doctor inner join hospital on doctor.hospital_cod = hospital.hospital_cod where hospital.nombre = 'la paz';
+select salario from doctor inner join hospital on doctor.hospital_cod = hospital.hospital_cod where hospital.nombre = 'la paz';
+
+/
+declare
+    cursor cursordoctorhospital is select salario, doctor_no from doctor inner join hospital on doctor.hospital_cod = hospital.hospital_cod where hospital.nombre = 'la paz';
+    cursor cursordoctorhospital2 is select salario, doctor_no from doctor inner join hospital on doctor.hospital_cod = hospital.hospital_cod where hospital.nombre = 'la paz';
+    v_salario_recuperado doctor.salario%type; v_doctor_no_recuperado doctor.doctor_no%type; v_salario_total doctor.salario%type;
+begin
+    dbms_output.put_line ('comienza');
+    open cursordoctorhospital;
+    loop 
+        fetch cursordoctorhospital into v_salario_recuperado, v_doctor_no_recuperado;
+        exit when cursordoctorhospital%notfound;
+        v_salario_total := v_salario_total + v_salario_recuperado;
+    end loop;
+    
+    if (v_salario_total > 1000000) then 
+        dbms_output.put_line (' el salario es más de un millon. ');
+        open cursordoctorhospital2;
+        loop 
+            fetch cursordoctorhospital2 into v_salario_recuperado, v_doctor_no_recuperado;
+            exit when cursordoctorhospital2%notfound;
+            update doctor set salario = salario - 10000 where doctor_no = v_doctor_no_recuperado;
+        end loop;
+    else
+        dbms_output.put_line (' los salarios son menos del millo. ');
+        open cursordoctorhospital2;
+        loop 
+            fetch cursordoctorhospital2 into v_salario_recuperado, v_doctor_no_recuperado;
+            exit when cursordoctorhospital2%notfound;
+            update doctor set salario = salario + 10000 where doctor_no = v_doctor_no_recuperado;
+        end loop;
+    end if;
+end;
+/
+
+
+---las subconsultas hay que evitarlas. porque crean dependencias. 
+
+---miVariableFilaPrueba doctor%rowtype;
+
+describe dept;
+
+declare
+    --v_id number;
+    v_id dept.dept_no%type;
+    --miVariableFila dept%rowtype;
+    
+begin
+    dbms_output.put_line ('asdf');
+    dbms_output.put_line (v_id);
+
+end;
+
+declare 
+    v_fila dept%rowtype;
+    cursor cursorDepartamento is select * from dept;
+begin
+    open cursorDepartamento;
+    loop
+        fetch cursorDepartamento into v_fila;
+        exit when cursorDepartamento%notfound;
+        dbms_output.put_line (v_fila.dept_no);
+        dbms_output.put_line (v_fila.dnombre);
+    end  loop; 
+    close cursorDepartamento;
+end;
+
+
+
+
+-- realizar un cursor para mostrar el apellido, salario y oficio de los empleados. 
+select * from emp;
+declare 
+    cursor miCursorDoctor is select apellido, salario, oficio from emp;
+begin
+    for i in miCursorDoctor  loop
+        dbms_output.put_line ('datos:  ' || i.apellido || ' - ' || i.salario || ' - ' || i.oficio);
+    end loop;
+end;
+
+
+
