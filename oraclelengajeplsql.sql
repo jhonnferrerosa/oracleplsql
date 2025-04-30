@@ -791,18 +791,394 @@ begin
     close cursorDepartamento;
 end;
 
-
-
-
 -- realizar un cursor para mostrar el apellido, salario y oficio de los empleados. 
 select * from emp;
 declare 
     cursor miCursorDoctor is select apellido, salario, oficio from emp;
 begin
-    for i in miCursorDoctor  loop
-        dbms_output.put_line ('datos:  ' || i.apellido || ' - ' || i.salario || ' - ' || i.oficio);
-    end loop;
+
 end;
 
 
+
+declare 
+    v number;
+begin
+    if v < 11 then
+        dbms_output.put_line ('menor');
+    else
+        dbms_output.put_line ('myor');
+    end if;
+end;
+
+
+---  24/4/2025  control de exceptions. 
+declare
+    miException exception;
+    miNumeroUno number := 444;
+    miNumeroDos number := 0;
+    miNumeroTres number;
+begin
+    miNumeroTres := miNumeroUno / miNumeroDos
+    -- esto no se está ejecutando  (1/2). 
+    dbms_output.put_line (miNumeroTres);
+    dbms_output.put_line ('fin del programa. ');
+    -- esto no se está ejecutando (2/2). 
+    exception
+        when zero_divide then
+            dbms_output.put_line ('ha saltado la exception  de dividir por cero. ');
+end;
+
+--definir una exception.  En el momento en el que los empleados tengan una comisón de Cero, entonces devolver exception. 
+-- habra una tabla en la que tenfremos a los que tenga una comision mayor de cero. 
+select * from emp;
+select   apellido, comision from emp order by comision desc;
+
+create table emp_comision  (apellido varchar2(50), comision number(9));
+
+declare
+    cursor miCursor is select  apellido, comision from emp order by comision desc;    
+    miException exception;
+begin
+    dbms_output.put_line ('comienza');
+    for v_record in miCursor loop 
+        insert into emp_comision values (v_record.apellido, v_record.comision);
+        if (v_record.comision = 0) then
+            --dbms_output.put_line ('comisión mayor que cero, el apellido: ' || v_record.apellido || ' la comision: ' || v_record.comision);
+            raise miException;
+        end if;
+    end loop;
+    
+    exception
+        when miException then
+            dbms_output.put_line ('esta es la excption de comision Cero. ');
+end;
+
+select * from emp_comision;
+select * from dept;
+describe dept;
+
+
+-- el pragma, es para que se pueda personaliar los mensajes que devueven las exceptions (ya que siempre tienen algo por defecto). 
+declare
+    miExceptionNulos exception;
+    pragma exception_init (miExceptionNulos, -1400);
+begin
+    dbms_output.put_line ('comienza');
+    insert into dept values (null, 'departe', 'pragma');
+    
+    exception
+        when miExceptionNulos then
+            dbms_output.put_line ('No se puede insertar NULL en la tabla. ');
+end;
+
+select * from dept;
+declare 
+    v_id number;
+begin
+    dbms_output.put_line ('comienza');
+    --select dept_no into v_id from dept where dnombre = 'VENTAS';
+    select dept_no into v_id from dept where dnombre = 'VEasdfNTAS';
+    --select dept_no into v_id from dept;
+    exception 
+        when TOO_MANY_ROWS then
+            dbms_output.put_line ('demasiadas filas en el cursor. ');
+        when others then
+            dbms_output.put_line ('algún error está ocurriendo... ');
+            dbms_output.put_line (to_char (SQLCODE));
+            dbms_output.put_line (SQLERRM);
+end;
+
+
+
+declare 
+    v_id number;
+begin
+    dbms_output.put_line ('comienza');
+    RAISE_APPLICATION_ERROR (-20400, ' esto es un error de aplicacion');
+    dbms_output.put_line ('acaba');
+end;
+
+--en los procedieitos no se puede hacer  DROP. 
+--  sp es por Store Procedore. 
+select * from dept;
+create or replace procedure storeProcedureMiProcedimiento 
+as
+begin 
+    dbms_output.put_line ('comienza12');
+end;
+
+-- ahora queda llamarlo. 
+begin
+    storeProcedureMiProcedimiento;
+end;
+exec storeProcedureMiProcedimiento;
+
+---procedieiento con bloque PLSQL. 
+declare 
+    v_numero number := 444;
+begin
+    if (v_numero > 0) then
+        dbms_output.put_line ('positivo');
+    else
+        dbms_output.put_line ('negativo');
+    end if;
+end;
+
+create or replace procedure storeProcedureMiProcedimientoPrueba
+as
+begin
+    declare 
+        v_numero number := 444;
+    begin
+        if (v_numero > 0) then
+            dbms_output.put_line ('positivo');
+        else
+            dbms_output.put_line ('negativo');
+        end if;
+    end;
+end;
+
+begin
+    storeProcedureMiProcedimientoPrueba;
+end;
+
+
+--sintaaxis1. tenemos otras sintaxis para tener variables dentro de un PROC. No se usa la palabra declare. 
+create or replace procedure miProcedimientoEjemplo
+as 
+    v_numero number := -222;
+begin
+    if (v_numero > 0) then
+        dbms_output.put_line ('positivo');
+    else
+        dbms_output.put_line ('negativo');
+    end if;
+end;
+
+---show_errors
+
+
+create or replace procedure miProcedimientoEjemploDos (parametro_uno number, parametro_dos number)
+as
+    v_suma number;
+begin
+    dbms_output.put_line ('comeinza miProcedimientoEjemploDos');
+    v_suma := parametro_uno + parametro_dos;
+    dbms_output.put_line (v_suma);
+end;
+
+BEGIN
+    miProcedimientoEjemploDos(5, 10);
+END;
+
+create or replace procedure miProcedimientoEjemploTres (parametro_uno number, parametro_dos number)
+as
+begin
+    declare 
+        v_division number;
+    begin
+        v_suma := parametro_uno / parametro_dos;
+        dbms_output.put_line (v_division);
+        exception 
+            when ZERO_DIVIDE then
+                dbms_output.put_line ('miProcedimientoEjemploTres()--- INNER.  error se ha dividido por cero. o ')
+            
+    end;
+    dbms_output.put_line ('comeinza miProcedimientoEjemploTres');
+    exception 
+        when ZERO_DIVIDE then
+            dbms_output.put_line ('miProcedimientoEjemploTres()--- OUTER.  error se ha dividido por cero. o ');
+end;
+
+begin
+    miProcedimientoEjemploTres (3, 0);
+end;
+
+--30/4. 
+--procedimiento para insertar un departamento. 
+create or replace procedure sp_insertaDepartamento (p_int integer, p_nombre varchar2, p_localidad varchar2)
+as
+begin
+    dbms_output.put_line ('sp_insertaDepartamento ()--- arranca el procedmieito.');
+end;
+
+create or replace procedure sp_insertaDepartamento (p_int dept.dept_no%type, p_nombre dept.dnombre%type, p_localidad dept.loc%type)
+as
+begin
+    --nomalnete dentro de los procedimientos de accion (los que modifican la BBDD) se incluye un commit. 
+    dbms_output.put_line ('sp_insertaDepartamento ()--- arranca el procedmieito.');
+    insert into dept values (p_int, p_nombre, p_localidad);
+    commit;
+end;
+
+
+
+create or replace procedure sp_insertaDepartamento (p_int dept.dept_no%type, p_nombre dept.dnombre%type, p_localidad dept.loc%type)
+as
+    v_max_id dept.dept_no%type;
+begin
+    --realizamos el cursor implicito para biuscar el MAX id. 
+    select max (dept_no)+1 into v_max_id from dept;
+
+    --nomalnete dentro de los procedimientos de accion (los que modifican la BBDD) se incluye un commit. 
+    dbms_output.put_line ('sp_insertaDepartamento ()--- arranca el procedmieito.');
+    dbms_output.put_line (v_max_id);
+    insert into dept values (v_max_id, p_nombre, p_localidad);
+    commit;
+end;
+
+create or replace procedure sp_insertaDepartamento (p_int dept.dept_no%type, p_nombre dept.dnombre%type, p_localidad dept.loc%type)
+as
+    v_max_id dept.dept_no%type;
+begin
+    --realizamos el cursor implicito para biuscar el MAX id. 
+    select max (dept_no)+1 into v_max_id from dept;
+
+    --nomalnete dentro de los procedimientos de accion (los que modifican la BBDD) se incluye un commit. 
+    dbms_output.put_line ('sp_insertaDepartamento ()--- arranca el procedmieito.');
+    dbms_output.put_line (v_max_id);
+    insert into dept values (v_max_id, p_nombre, p_localidad);
+    commit;
+    
+    exception 
+        when no_data_found then
+            dbms_output.put_line ('sp_insertaDepartamento () --- no existen datos.');
+            rollback;
+end;
+
+
+begin
+    sp_insertaDepartamento (11, '11', '11');
+end;
+
+select * from dept;
+rollback;
+
+
+-- realizar un proc pra incrementar el salario por el oficio. 
+-- hay que enviar el oficio y el incremento. 
+select * from emp;
+
+create or replace procedure sp_modificarSalario (p_oficio emp.oficio%type, p_salario emp.salario%type)
+as
+begin
+    dbms_output.put_line ('sp_modificarSalario () --- ' || p_oficio || '---' ||  p_salario);
+    update emp set salario  = salario +  p_salario where upper(oficio) = upper(p_oficio);
+end;
+
+begin
+    sp_modificarSalario ('vendedor', 3000);
+end;
+
+
+-- se va a hacer los mismo con doctor.  Se necesita insertar un doctor con todos sus datos. 
+-- se debe recuperar id del docotor dentro del procedure. 
+select * from doctor;
+describe doctor;
+select * from plantilla;
+
+
+create or replace procedure sp_insertaDoctorImprimirID (p_hospital_cod doctor.hospital_cod%type, p_apellido doctor.apellido%type, p_especialidad doctor.especialidad%type, p_salario doctor.salario%type)
+as
+    v_max_id number;
+begin
+    --realizamos el cursor implicito para biuscar el MAX id. 
+    select max (doctor_no)+1 into v_max_id from doctor;
+
+    --nomalnete dentro de los procedimientos de accion (los que modifican la BBDD) se incluye un commit. 
+    dbms_output.put_line ('sp_insertaDoctorImprimirID ()--- arranca el procedmieito.');
+    dbms_output.put_line (v_max_id);
+    insert into doctor values (p_hospital_cod, v_max_id, p_apellido, p_especialidad, p_salario);
+    commit;
+    dbms_output.put_line (SQL%rowcount);    
+end;
+
+--en este ejercicio se va a hacer los mismo que el anterior, pero enviamos el nombre del hospital en lugar del id del hospital. 
+-- controlamos en el caso de que no exista el nombre del hospital enviado. 
+
+select * from doctor;
+select * from hospital;
+
+create or replace procedure sp_insertaDoctorImprimirID (p_hospital_nombre hospital.nombre%type, p_apellido doctor.apellido%type, p_especialidad doctor.especialidad%type, p_salario doctor.salario%type)
+as
+    v_max_id number;
+    v_hospital_cod number;
+begin
+    dbms_output.put_line ('sp_insertaDoctorImprimirID ()--- arranca el procedmieito.');
+    --realizamos el cursor implicito para biuscar el MAX id. 
+    select max (doctor_no)+1 into v_max_id from doctor;
+    --averiguo el id del hostital el que voy a insertar. 
+    select hospital_cod into v_hospital_cod from hospital where nombre = p_hospital_nombre;
+
+    
+    dbms_output.put_line (v_max_id);
+    dbms_output.put_line (v_hospital_cod);
+    insert into doctor values (v_hospital_cod, v_max_id, p_apellido, p_especialidad, p_salario);
+    dbms_output.put_line (' este ee s el row countt:  ' || SQL%rowcount); 
+    exception 
+        when no_data_found then 
+            dbms_output.put_line ('sp_insertaDoctorImprimirID ()--- no se ha encontrado ese nombre de hospital. ');
+    
+end;
+
+
+begin
+    sp_insertaDoctorImprimirID ('la paz', 'serraono', 'cirujano', 4000);
+end;
+
+
+-- procedimiento para mostrar los empleados de un determinado número de departamentos. 
+select * from emp;
+create or replace procedure sp_mostrarEmpleadosDelDepartamento (p_deptno emp.dept_no%type)
+as 
+    cursor cursor_emp is select * from emp where dept_no = p_deptno;
+begin
+    dbms_output.put_line ('sp_mostrarEmpleadosDelDepartamento()--- empieza');
+    for i in cursor_emp loop 
+        dbms_output.put_line ('este es el apelido: ' || i.apellido || ' este es el oficio: ' || i.oficio);
+    end loop;
+end;
+
+begin
+    sp_mostrarEmpleadosDelDepartamento (10);
+end;
+
+
+-- nombre y departamento. 
+--procedimiento para enviar el nombre del departamento y devolver el número del ese departameto. 
+select * from dept;
+create or replace procedure sp_numeroDepartamento (p_nombre dept.dnombre%type, p_out_idDepartmento out dept.dept_no%type)
+as
+    v_idDepartamento dept.dept_no%type;
+begin
+    dbms_output.put_line ('sp_numeroDepartamento()--- comeinza');
+    select dept_no into v_idDepartamento from dept where  upper (dnombre) = upper (p_nombre); 
+    p_out_idDepartmento := v_idDepartamento;
+    dbms_output.put_line ('el numero de departamento es:  ' || v_idDepartamento);
+end;
+
+begin
+    sp_numeroDepartamento ('ventas');
+end;
+
+
+--- necesito un pric para incrementar en 1 el salario de los empleados de un deaprtamento. 
+-- enviaremos al procedimiento el nombre del departamento. 
+
+create or replace procedure sp_incrementar_salario_departamento (p_nombre dept.dnombre%type)
+as
+    v_num dept.dept_no%type;
+begin
+    dbms_output.put_line ('sp_incrementar_salario_departamento()--');
+    --recuperamos el id del departamento  partir del nombre. 
+    sp_numeroDepartamento (p_nombre, v_num);
+    dbms_output.put_line ('el numero de departamento es:  ' || v_num);
+    update emp set salario = salario + 1 where dept_no = v_num;
+    dbms_output.put_line ('salarios modificados: ' || v_num);
+end;
+
+begin
+    sp_incrementar_salario_departamento ('ventas');
+end;
 
