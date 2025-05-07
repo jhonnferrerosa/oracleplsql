@@ -1158,8 +1158,11 @@ begin
     dbms_output.put_line ('el numero de departamento es:  ' || v_idDepartamento);
 end;
 
+declare 
+    v number;
 begin
-    sp_numeroDepartamento ('ventas');
+    sp_numeroDepartamento('ventas', v);
+    dbms_output.put_line ('llamada al procedimeito con OUT:   ' || v);
 end;
 
 
@@ -1181,4 +1184,471 @@ end;
 begin
     sp_incrementar_salario_departamento ('ventas');
 end;
+
+
+--05/05/2025.
+---funciones
+create or replace function f_sumar_numeros (p1 number, p2 number) return number
+as
+    v_suma number;
+begin
+    v_suma := p1 + p2;
+    return v_suma;
+end;
+
+create or replace function f_sumar_numeros_2 (p1 number, p2 number) return number
+as
+    v_suma number;
+begin
+    v_suma := nvl(p1,0) + nvl(p2,0);
+    return v_suma;
+end;
+
+
+declare 
+    v_resultado number;
+    v_resultado_2 number;
+begin
+    v_resultado := f_sumar_numeros (22,66);
+    v_resultado_2 := f_sumar_numeros_2 (null, null);
+    dbms_output.put_line  ('el resultado de la suma es:    ' || v_resultado);
+    dbms_output.put_line  ('el resultado de la suma es:    ' || v_resultado_2);
+end;
+
+select f_sumar_numeros (33,33) from dual;
+
+
+---funcion para saber el número de personas de un oficio. 
+create or replace function f_numero_personas_oficio (p_oficio emp.oficio%type) return number
+as 
+    v_versonas int;
+begin
+    select count (emp_no) into v_versonas from emp where upper (oficio) = upper (p_oficio);
+    return v_versonas;
+end;
+
+select * from emp;
+
+
+select f_numero_personas_oficio ('director') from dual;
+-- realizar uan funcion que devuelva el mayor de dos numeros. 
+
+create or replace  function f_cual_es_mayor (p1 number, p2 number) return number
+as
+begin
+    if (p1 > p2) then 
+        return p1;
+    else
+        return p2;
+    end if;
+end;
+
+select f_cual_es_mayor (5,9) from dual;
+
+--realizar el mayor para devolver tres numeros, pero sin utilizar IF. 
+create or replace function f_cual_es_mayor_2 (p1 number, p2 number, p3 number) return number
+as 
+begin
+-- aqui el código por favor. 
+    return GREATEST (p1,p2,p3);
+end;
+
+
+select f_cual_es_mayor_2 (4,5,6) from dual;
+
+
+create or replace function sumar_iva (prametroPrecio number, parametroIva number := 1.18) return number
+as
+begin
+    return prametroPrecio * parametroIva;
+end;
+
+select sumar_iva (100, 1.21) from dual;
+
+--- aqui vamos a las vistas 
+-- quiero una vista para tener todos los datos de los empleados SIN EL SLARIO. 
+create or replace view vistaEmpleados
+as
+    select emp_no, apellido from emp;
+    
+select * from  vistaEmpleados;
+
+
+--las vitas simlican las consultas. --
+--
+--
+--
+--
+--
+--
+--
+
+create or replace view vistaEmpleadosDepartamentos
+as
+    select emp.apellido, emp.emp_no, emp.oficio , dept.dnombre, dept.loc from emp  inner join dept on emp.dept_no = dept.dept_no;
+
+select * from vistaEmpleadosDepartamentos where loc='MADRID';
+
+-- de esta forma es como se ve que vistas tiene este usuario, ademas muestra las consultas que ejecuta esa vistaa. 
+select * from user_views;
+
+
+--vamos a modificar el salario de los emleados ANALISTA.
+--- ver como las vista no modifican los datos de las tblas. 
+select * from emp;
+select * from dept;
+update emp set  salario = salario + 1 where oficio = 'ANALISTA';
+
+-- eliminamos al empleados con id = 7917. 
+delete from vistaEmpleadosDepartamentos where emp_no = 7917;
+
+--- ahora vamos a insertar. 
+insert into vistaEmpleadosDepartamentos values ('perez', 444, 'limpiador','VENTAS', 'MADRID');
+
+
+--modiicar el slsario de los emelaados de MADID
+--- en  esta parte sí que me esta dando error el moodifcar el salario, en principio al profesor sí que le dejo mofificar el salario. 
+--- EXPLICACION.  mirar los apuntes del profesor, porque el devuelve en la vista el salario y por eso sí que de dejamodificarlo. 
+update vistaEmpleadosDepartamentos set salario = salario + 1 where loc='MADRID';
+select * from vistaEmpleadosDepartamentos where loc='MADRID';
+
+--  (en el update o insert) en el caso de que la consullta afecte  a dos tablas no deja. 
+-- en el caso del delete si que borra si que se ejecuta la vista. 
+
+
+-- with check option.  veriifica que la vista no se quede inutil. 
+-- en el caso de que vaya a moificar el whwre de una vista, que no le ddeje. 
+create or replace view V_VENDEDORES 
+as
+    select emp_no, apellido, oficio, salario, dept_no  from emp where oficio = 'VENDEDOR' with check option;
+--vamos a mofificar el salario de los vendedores. 
+
+update V_VENDEDORES set salario = salario + 1;
+update V_VENDEDORES set OFICIO = 'VENDIDOS';
+select * from V_VENDEDORES;
+
+rollback;
+
+
+-- examenn teoria 10 preguntas tipo TEST. 
+
+--- mirar examtopics que hay examnes de certificacion de PLSQL. 
+create or replace procedure procedureNumeroNarcisista (parametroNumero varchar2)
+as
+    auxParametroNumero number;
+    auxNumero number;
+    miNumeroTotal number; 
+begin
+    dbms_output.put_line ('procedureNumeroNarcisista() --- ');
+    auxParametroNumero := to_number (parametroNumero);
+    for i in 1..length (parametroNumero) loop
+        dbms_output.put_line (substr (parametroNumero, i, 1));
+        auxNumero := to_number (substr (parametroNumero, i, 1));
+        auxNumero := auxNumero + power (substr (parametroNumero, i, 1), lenth)
+    end loop;
+end;
+
+begin
+    procedureNumeroNarcisista ('125');
+end;
+
+--6/5/2025. 
+-- En este día se dan paquetes. 
+--- organizar o declaraciion de elementos. 
+--- declaracion de variables. Record. 
+create or replace package paquetePrueba
+as 
+    procedure mostrarMensaje;
+end paquetePrueba;
+
+create or replace package body paquetePrueba
+as
+    procedure mostrarMensaje
+    as 
+    begin
+        dbms_output.put_line (' saludo desde el procedimiento almacenado dentro de un packete.');
+    
+    end;
+end paquetePrueba;
+
+begin
+    paquetePrueba.mostrarMensaje;
+end;
+
+create or replace package paquetedelete
+as
+    procedure eliminaremp(p_empno emp.emp_no%type);
+    procedure eliminardept(p_deptno dept.dept_no%type);
+    procedure eliminardoctor(p_doctorno doctor.doctor_no%type);
+    procedure eliminarenfermo(p_inscripcion enfermo.inscripcion%type);
+end paquetedelete;
+
+create or replace package body paquetedelete
+as
+    procedure eliminaremp(p_empno emp.emp_no%type)
+    as
+    begin
+        delete from emp where emp_no = p_empno;
+    end;
+    procedure eliminardept(p_deptno dept.dept_no%type)
+    as
+    begin
+        delete from dept where dept_no = p_deptno;
+    end;
+    procedure eliminardoctor(p_doctorno doctor.doctor_no%type)
+    as
+    begin
+        delete from doctor where doctor_no = p_doctorno;
+    end;
+    procedure eliminarenfermo(p_inscripcion enfermo.inscripcion%type)
+    as
+    begin
+        delete from enfermo where inscripcion = p_inscripcion;
+    end;
+end paquetedelete;
+--llamada
+begin
+  paquetedelete.eliminaremp(7888);
+end;
+
+select * from emp;
+delete from emp where emp_no = 7888;
+
+
+--- de esta forma es de la que se borra. 
+DROP PACKAGE paquetedelete;
+
+
+
+
+
+create or replace package paquetesalariosemp
+as
+    function maximosalario return int;
+    function minimosalario return int;
+    function diferencia return int;
+    procedure llamadaprueba;
+end paquetesalariosemp;
+
+create or replace package body paquetesalariosemp
+as
+  function maximosalario return int
+  as
+    v_maximo int;
+  begin
+    select max(salario) into v_maximo
+    from emp;
+    return v_maximo;
+  end;
+  function minimosalario return int
+  as
+    v_minimo int;
+  begin
+    select min(salario) into v_minimo
+    from emp;
+    return v_minimo;
+  end;
+  function diferencia return int
+  as
+    v_diferencia int;
+  begin
+    v_diferencia := maximosalario - minimosalario;
+    return v_diferencia;
+  end;
+  procedure llamadaprueba
+  as
+  begin
+    dbms_output.put_line('Máximo: ' || maximosalario);
+    dbms_output.put_line('Mínimo: ' || minimosalario);
+    dbms_output.put_line('Diferencia: ' || diferencia);
+  end;
+end paquetesalariosemp;
+--LLAMADA FUNCIONES
+
+
+
+select paquetesalariosemp.maximosalario as maximo
+, paquetesalariosemp.minimosalario as minimo
+, paquetesalariosemp.diferencia as diferencia from dual;
+--LLAMADA PROCEDIMIENTO
+
+
+begin
+  paquetesalariosemp.llamadaprueba;
+end;
+
+
+--un paquete para realuzar update, insert y delete. 
+-- todo esto dobre dept. 
+select * from dept;
+create or replace package pk_departamentos
+as
+    procedure insertar (p1 dept.dept_no%type, p2 dept.dnombre%type, p3 dept.loc%type);
+    procedure actualizar (p0 dept.dept_no%type,p1 dept.dept_no%type, p2 dept.dnombre%type, p3 dept.loc%type);
+    procedure eliminiar (p1 dept.dept_no%type);
+end pk_departamentos;
+
+
+create or replace package body pk_departamentos
+as
+    procedure insertar (p1 dept.dept_no%type, p2 dept.dnombre%type, p3 dept.loc%type)
+    as
+    begin
+        dbms_output.put_line ('se insertado');
+        insert into dept values (p1, p2, p3);
+    end;
+    
+    procedure actualizar (p0 dept.dept_no%type, p1 dept.dept_no%type, p2 dept.dnombre%type, p3 dept.loc%type)
+    as
+    begin
+        dbms_output.put_line ('se ha actualizado. ');
+        update dept set dept_no = p1, dnombre = p2, loc = p3 where dept_no = p0;
+    end;
+    
+    procedure eliminiar (p1 dept.dept_no%type)
+    as
+    begin
+        dbms_output.put_line ('se elimina. ');
+        delete from dept where dept_no = p1;
+    end;
+end pk_departamentos;
+
+
+begin
+    --pk_departamentos.insertar (101, 'ventas2', 'pamplona');
+    --pk_departamentos.actualizar (10, 333, 'ventas2', 'pamplona');
+    pk_departamentos.eliminiar (100);
+end;
+
+-- se pide una funcion que devuelva el apellido , el trabajo el salario y el lugar de trabajo de 
+-- todas las personas de la BBDD. de las tablas dept y hospital 
+--1) el select 
+--2) ppnerlo en una vista. 
+--3) paquete con dos procedimeintos. 
+--3A) procedimitnro para devolver todos los datos en un cursor. 
+--3B) procedimiento para devolver todos los datos en un cursor por salario. 
+select * from emp;
+select apellido, oficio, salario  from emp; 
+select emp.apellido, emp.oficio, emp.salario, dept.loc  from emp inner join dept on emp.dept_no = dept.dept_no; 
+select * from plantilla;
+select apellido, funcion, salario from plantilla;
+select plantilla.apellido, plantilla.funcion, plantilla.salario, hospital.direccion from plantilla inner join hospital on plantilla.hospital_cod = hospital.hospital_cod;
+select * from doctor;
+select apellido, especialidad, salario from doctor;
+select doctor.apellido, doctor.especialidad, doctor.salario, hospital.direccion from doctor inner join hospital on doctor.hospital_cod = hospital.hospital_cod;
+
+select emp.apellido, emp.oficio, emp.salario, dept.loc  from emp inner join dept on emp.dept_no = dept.dept_no
+union
+select plantilla.apellido, plantilla.funcion, plantilla.salario, hospital.direccion from plantilla inner join hospital on plantilla.hospital_cod = hospital.hospital_cod
+union
+select doctor.apellido, doctor.especialidad, doctor.salario, hospital.direccion from doctor inner join hospital on doctor.hospital_cod = hospital.hospital_cod;
+
+create or replace view vistaTresTablas
+as
+    select emp.apellido, emp.oficio, emp.salario, dept.loc  from emp inner join dept on emp.dept_no = dept.dept_no
+    union
+    select plantilla.apellido, plantilla.funcion, plantilla.salario, hospital.direccion from plantilla inner join hospital on plantilla.hospital_cod = hospital.hospital_cod
+    union
+    select doctor.apellido, doctor.especialidad, doctor.salario, hospital.direccion from doctor inner join hospital on doctor.hospital_cod = hospital.hospital_cod;
+
+--- hay que ponerlo en una vista para que despues se pueda filtrar por determinados valores de los que devuelva la vista. 
+
+select * from vistaTresTablas;
+
+
+---jhonjames. recordar que estos dos procedmientos tiene que estr dentro de un paquete. 
+create or replace procedure recibirDatosUno
+as
+    cursor cursorPrueba is select * from vistaTresTablas;
+begin
+    for i in cursorPrueba loop
+        dbms_output.put_line ('estos son los datos: ' || i.apellido || ' - ' || i.oficio || ' - ' || i.salario || ' - ' || i.loc);
+    end loop;
+end;
+
+begin
+    recibirDatosUno;
+end;
+
+create or replace procedure recibirDatosDos
+as
+    cursor cursorPrueba is select * from vistaTresTablas where salario > 200000;
+begin
+    for i in cursorPrueba loop
+        dbms_output.put_line ('estos son los datos: ' || i.apellido || ' - ' || i.oficio || ' - ' || i.salario || ' - ' || i.loc);
+    end loop;
+end;
+
+begin
+    recibirDatosDos;
+end;
+
+
+
+
+-----
+select * from doctor;
+select round(dbms_random.value(1,50), 0) from dual;
+
+
+--Necesitamos un paquete con un procedimiento para modificar el salario de cada doctor de forma individual. 
+-- La modificacion de los datos de cada doctor sera de forma aleatoria. 
+-- debemos comprobr el salario de cada doctor para ajustar el numero aleatorio del incremento. 
+
+--1) doctor con menos de 200.000 incremento aleatorio de 500. 
+--2) doctor entre 200.000 y 300.000 incremento de 300.
+--3) doctor mayor de 300.000 incremento de 50.
+--dentro de este paquete tiene uque haber una fuincion y un procedure, la funcion reotorna el RANDOM y el procedure aplica 
+-- los valores random a la columna salario. 
+select * from doctor;
+create or replace package paqueteIncrementosRandom
+as 
+    procedure aumentarSalarioDoctor;
+    function generarRandom (parametronNumero number) return number;
+end paqueteIncrementosRandom;
+
+create or replace package body paqueteIncrementosRandom
+as
+    procedure aumentarSalarioDoctor
+    as 
+        cursor cursorPrueba is select * from doctor;
+        miAuxiliarRandom number;
+    begin
+        --dbms_output.put_line ('paqueteIncrementosRandom.aumentarSalarioDoctor () --- ');
+        for i in cursorPrueba loop
+            --dbms_output.put_line ('paqueteIncrementosRandom.aumentarSalarioDoctor () --- ' || i.doctor_no);
+            update doctor set salario = salario + generarRandom (i.salario) where doctor_no = i.doctor_no;
+        end loop;
+    end;
+    
+    function generarRandom (parametronNumero number) return number
+    as
+        miAuxiliarAleatorio number;
+    begin
+        --dbms_output.put_line ('generarRandom()---');
+        if (parametronNumero < 200000) then 
+            select round(dbms_random.value(1,500), 0) into miAuxiliarAleatorio from dual;
+            return miAuxiliarAleatorio;
+        elsif (parametronNumero >= 200000) and (parametronNumero < 500000) then 
+            select round(dbms_random.value(1,300), 0) into miAuxiliarAleatorio from dual;
+            return miAuxiliarAleatorio;
+        else
+            select round(dbms_random.value(1,50), 0) into miAuxiliarAleatorio from dual;
+            return miAuxiliarAleatorio;
+        end if;
+    end;
+end paqueteIncrementosRandom;
+
+
+begin
+    --dbms_output.put_line (paqueteIncrementosRandom.generarRandom (750000));
+    paqueteIncrementosRandom.aumentarSalarioDoctor;
+end;
+
+
+--7/5/2025
+
+
+
+
 
