@@ -1647,6 +1647,166 @@ end;
 
 
 --7/5/2025
+select * from emp;
+update into emp;  
+select * 
+
+
+declare
+    miNumero number;
+begin
+    update  emp  set salario =   777 where emp_no = conseguirClaveEMP;  
+end;
+
+create or replace function conseguirClaveEMP return number
+as
+    miVariableNumero number;
+begin 
+    select emp_no into miVariableNumero from emp where emp_no = 7839;
+    commit;
+    return miVariableNumero;
+end;
+
+--- el tipo record se suele utilizar para comparir varables entre varios procedimientos. 
+declare
+    Type tipoEmpleados is record (
+       	campo1 varchar2 (50), campo2 varchar2 (50), campo3 int
+    );
+    miArray tipoEmpleados;
+begin
+    dbms_output.put_line ('hola, empieza');
+    select apellido, oficio, salario into miArray from emp where emp_no = 7839;
+    dbms_output.put_line (miArray.campo1 || ' - ' || miArray.campo2 || ' - ' || miArray.campo3);
+end;
+
+
+
+--arrays. 
+--por ul lado esta la declaracion del tippo. Por otro la variable de dicho tipo. 
+declare
+    -- este es el tipo array. 
+    TYPE tablaNumeros is table of number index by binary_integer;
+    -- aqui está el objeto. 
+    miArray tablaNumeros;
+begin
+    dbms_output.put_line ('EMPIEZAAA. ');
+    miArray (1) := 101;
+    miArray (2) := 999;
+    miArray (3) := 123;
+    --dbms_output.put_line (miArray(1));
+    for i in 1..length(miArray) loop
+        dbms_output.put_line (miArray(i));
+    end loop;
+end;
+
+--guardamos un tipo fila de departamento. 
+declare
+    type arrayDeFilas is table of dept%rowtype index by binary_integer;
+    miArrayPrueba arrayDeFilas;
+begin
+    dbms_output.put_line ('comienza');
+    select * into miArrayPrueba(1) from dept where dept_no = 20;
+    select * into miArrayPrueba(2) from dept where dept_no =30;
+    for i in 1..miArrayPrueba.count loop 
+        dbms_output.put_line (miArrayPrueba(i).dept_no);
+    end loop;
+end;
+
+--arrays estaticos. 
+declare
+    cursor cursorEmpelado is select apellido from emp;
+    type miTipoArrayEstatico is varray (20) of emp.apellido%type;
+    miArrayEmpleados miTipoArrayEstatico := miTipoArrayEstatico ();
+    contador integer := 0;
+begin
+    dbms_output.put_line ('array estatico. ');
+    for i in cursorEmpelado loop
+        contador := contador + 1;
+        miArrayEmpleados.extend;
+        miArrayEmpleados (contador) := i.apellido;
+        dbms_output.put_line ('empleado: ' || contador || ' - ' || miArrayEmpleados(contador));
+    end loop;
+end;
+
+
+--trigers.   after,, before instead of. 
+select * from dept;
+
+create or replace trigger trigger_before_insert_dept
+before insert
+on dept
+for each row 
+declare 
+begin
+    dbms_output.put_line ('trigger_before_insert_dept ()--- ');
+    dbms_output.put_line (:new.dept_no || '  -  ' || :new.dnombre);
+end;
+
+create or replace trigger trigger_before_insert_dept
+before insert
+on dept
+declare 
+begin
+    dbms_output.put_line ('trigger_before_insert_dept ()--- ');
+    dbms_output.put_line (:new.dept_no || '  -  ' || :new.dnombre);
+end;
+
+INSERT into dept values (555, 'recursos hmanos', 'toledo');
+
+select * from doctor;
+
+create or replace trigger trigger_before_update_doctor
+before update
+on doctor
+for each row
+    -- esto signifia que el trigger sólo salta en los casos que 
+    when (new.salario > 250000)
+declare 
+begin
+    dbms_output.put_line ('trigger_before_update_doctor ()--- ');
+    dbms_output.put_line (:old.apellido || '  -  ' || :new.salario);
+end;
+
+update doctor set salario = 123456 where doctor_no = 386;
+
+DROP TRIGGER trigger_before_update_doctor;
+
+
+
+-- no podemos tener dos triiger del mismo tipo en una tabla. 
+-- cuisdado porque hay triggers que no se pueden hacer dos vaces. 
+select * from dept;
+drop trigger trigger_before_insert_dept;
+create or replace trigger trigger_before_insert_dept_controlBarcelona
+before insert
+on dept
+for each row 
+declare 
+begin
+    dbms_output.put_line ('trigger_before_insert_dept_controlBarcelona ()--- ');
+    if (upper(:new.loc) = 'BARCELONA') then
+        dbms_output.put_line ('No se admiten departamentos de Barcelona. ');
+        raise_application_error (-20003, 'Exception: No se admiten departamentos de Barcelona. ');
+    end if;
+end;
+
+-- es mas eficiente usar el WHEN. 
+
+insert into dept values (790, 'ventas333', 'Barcelona');
+
+
+create or replace trigger trigger_before_insert_dept_controlLocalidades
+before insert
+on dept
+for each row 
+declare 
+begin
+    dbms_output.put_line ('trigger_before_insert_dept_controlLocalidades ()--- ');
+    if (upper(:new.loc) = 'BARCELONA') then
+        dbms_output.put_line ('No se admiten departamentos de Barcelona. ');
+        raise_application_error (-20003, 'Exception: No se admiten departamentos de Barcelona. ');
+    end if;
+end;
 
 
 
